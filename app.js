@@ -32,7 +32,6 @@ let unsubStok = null;
 let unsubRiwayat = null;
 let unsubKatalog = null;
 
-// Inisialisasi ikon
 lucide.createIcons();
 
 // ==========================================
@@ -65,7 +64,7 @@ window.bukaMenuUtama = (menu) => {
         secAnalisa.classList.remove('hidden');
         btnAnalisa.classList.add('bg-white', 'text-violet-600', 'shadow-sm');
         btnAnalisa.classList.remove('text-slate-500', 'hover:text-slate-800');
-        cekStatusKunciGemini(); // Cek API key saat menu analisa dibuka
+        cekStatusKunciGemini(); 
     }
 };
 
@@ -87,7 +86,7 @@ function renderKeuangan() {
     let sumPemasukan = 0; let sumPengeluaran = 0; let sumProfit = 0;
 
     if (dataTransaksi.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400">Belum ada transaksi pengadaan maupun penjualan.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">Belum ada transaksi pengadaan maupun penjualan.</td></tr>`;
     } else {
         dataTransaksi.forEach(t => {
             const dateObj = new Date(t.tanggal);
@@ -100,7 +99,7 @@ function renderKeuangan() {
             else { sumPengeluaran += t.total; }
 
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-slate-50 transition-colors";
+            tr.className = "hover:bg-slate-50 transition-colors group";
             tr.innerHTML = `
                 <td class="py-3 px-5 text-slate-500 text-xs">${tglStr}</td>
                 <td class="py-3 px-5">
@@ -113,6 +112,9 @@ function renderKeuangan() {
                     <span class="font-bold ${isMasuk ? 'text-emerald-600' : 'text-rose-600'} text-sm">Rp ${t.total.toLocaleString('id-ID')}</span>
                 </td>
                 <td class="py-3 px-5 text-right font-extrabold text-indigo-600">${isMasuk ? '+ Rp ' + (t.profit).toLocaleString('id-ID') : '-'}</td>
+                <td class="py-3 px-5 text-center">
+                    <button onclick="hapusTransaksiGlobal('${t.id}')" class="text-rose-500 hover:bg-rose-50 p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" title="Hapus Histori Ini"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -121,12 +123,23 @@ function renderKeuangan() {
     document.getElementById('statPemasukan').innerText = `Rp ${sumPemasukan.toLocaleString('id-ID')}`;
     document.getElementById('statPengeluaran').innerText = `Rp ${sumPengeluaran.toLocaleString('id-ID')}`;
     document.getElementById('statProfit').innerText = `Rp ${sumProfit.toLocaleString('id-ID')}`;
+    lucide.createIcons();
 }
+
+window.hapusTransaksiGlobal = async (id) => {
+    if (confirm('Hapus log transaksi ini secara permanen? (Kalkulasi Pemasukan & Profit akan otomatis berubah)')) {
+        try {
+            await deleteDoc(doc(db, "transaksi", id));
+            showToast('Log transaksi berhasil dihapus dari Buku Besar.', 'error');
+        } catch (err) {
+            showToast('Gagal menghapus transaksi.', 'error');
+        }
+    }
+};
 
 // ==========================================
 // FITUR: ANALISA BISNIS & CHATBOT AI
 // ==========================================
-
 function cekStatusKunciGemini() {
     const keyLokal = localStorage.getItem('storeops_gemini_key');
     if (keyLokal) {
@@ -189,7 +202,7 @@ window.mintaAnalisaGemini = async () => {
     loadingBox.classList.remove('hidden'); hasilBox.classList.add('hidden'); lucide.createIcons();
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
         });
@@ -201,7 +214,7 @@ window.mintaAnalisaGemini = async () => {
         document.getElementById('teksHasilAI').innerHTML = teksJawaban;
         loadingBox.classList.add('hidden'); hasilBox.classList.remove('hidden');
     } catch (err) {
-        showToast('API Key salah atau kuota habis.', 'error'); loadingBox.classList.add('hidden');
+        showToast('API Key salah atau model tidak didukung.', 'error'); loadingBox.classList.add('hidden');
         hapusKunciLokal();
     } finally {
         btn.disabled = false; btn.innerHTML = `<i data-lucide="brain-circuit" class="w-5 h-5"></i> Generate Analisa Sekarang`; lucide.createIcons();
@@ -242,7 +255,7 @@ window.kirimPesanChat = async (e) => {
     const systemPrompt = `Info Toko -> Pemasukan: Rp${totalMasuk}, Pengeluaran: Rp${totalKeluar}, Laba: Rp${totalProfit}. Anda adalah asisten toko. Jawab singkat, ramah, dan solutif. Pertanyaan user: `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt + pesanUser }] }] })
         });
@@ -492,3 +505,23 @@ function showToast(message, type = 'success') {
     container.appendChild(toast); lucide.createIcons();
     setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
 }
+
+// ==========================================
+// EXPOSE CORE FUNCTIONS TO WINDOW
+// ==========================================
+window.prosesBeliBarang = prosesBeliBarang;
+window.hapusRiwayatLog = hapusRiwayatLog;
+window.simpanKatalog = simpanKatalog;
+window.editKatalogRow = editKatalogRow;
+window.hapusKatalogRow = hapusKatalogRow;
+window.hapusStokLangsung = hapusStokLangsung;
+window.simpanToko = simpanToko;
+window.editToko = editToko;
+window.hapusToko = hapusToko;
+window.resetTokoForm = resetTokoForm;
+window.bukaToko = bukaToko;
+window.kembaliKeDasborToko = kembaliKeDasborToko;
+window.switchTab = switchTab;
+window.bukaModalLaku = bukaModalLaku;
+window.tutupModalLaku = tutupModalLaku;
+window.konfirmasiLaku = konfirmasiLaku;
