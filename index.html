@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StoreOps Pro - AI & Finansial</title>
+    <title>StoreOps</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -63,7 +63,7 @@
                 <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 text-white p-2 rounded-xl shadow-lg">
                     <i data-lucide="wallet" class="w-6 h-6"></i>
                 </div>
-                <span class="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-700 to-violet-600 bg-clip-text text-transparent">StoreOps Pro</span>
+                <span class="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-700 to-violet-600 bg-clip-text text-transparent">StoreOps</span>
             </div>
             
             <div class="flex gap-1 sm:gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
@@ -112,18 +112,18 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div class="glass-card p-5 rounded-2xl flex items-center justify-between border-l-4 border-l-emerald-500">
-                        <div><p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Nilai Investasi Aset Gudang</p><h3 id="statTotalAset" class="text-2xl font-bold mt-1 text-slate-800">Rp 0</h3></div>
+                        <div><p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Nilai Aset Beli dari toko</p><h3 id="statTotalAset" class="text-2xl font-bold mt-1 text-slate-800">Rp 0</h3></div>
                         <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl"><i data-lucide="pie-chart"></i></div>
                     </div>
                     <div class="glass-card p-5 rounded-2xl flex items-center justify-between border-l-4 border-l-indigo-500">
-                        <div><p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Variasi Jenis Aset Gudang</p><h3 id="statTotalProduk" class="text-2xl font-bold mt-1 text-slate-800">0 Jenis</h3></div>
+                        <div><p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Variasi Jumlah barang</p><h3 id="statTotalProduk" class="text-2xl font-bold mt-1 text-slate-800">0 Jenis</h3></div>
                         <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl"><i data-lucide="box"></i></div>
                     </div>
                 </div>
 
                 <div class="flex gap-2 mb-6 bg-slate-200/50 p-1 rounded-xl max-w-xl border border-slate-200/30">
                     <button id="tabStokBtn" onclick="switchTab('stok')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-xs cursor-pointer">📦 Stok Aset</button>
-                    <button id="tabRiwayatBtn" onclick="switchTab('riwayat')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer">📜 Riwayat Pengadaan</button>
+                    <button id="tabRiwayatBtn" onclick="switchTab('riwayat')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer">📜 Riwayat Transaksi</button>
                     <button id="tabKatalogBtn" onclick="switchTab('katalog')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer">📁 Master Katalog</button>
                 </div>
 
@@ -170,7 +170,7 @@
 
                 <div id="kontenKatalog" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     <div class="glass-card p-5 rounded-2xl">
-                        <h2 id="katalogFormTitle" class="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200/50 pb-3 mb-4">Input Katalog</h2>
+                        <h2 id="katalogFormTitle" class="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200/50 pb-3 mb-4">Input Barang</h2>
                         <form id="katalogForm" onsubmit="simpanKatalog(event)" class="space-y-4">
                             <input type="hidden" id="editKatalogId">
                             <div><label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Nama Produk</label><input type="text" id="katNama" required class="w-full border-0 bg-slate-100/70 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500"></div>
@@ -183,12 +183,12 @@
                         </form>
                     </div>
                     <div class="lg:col-span-2 glass-card rounded-2xl overflow-hidden">
-                        <div class="p-4 bg-white/50 border-b border-slate-200/50 font-bold text-sm text-slate-700">Master Data Katalog Toko</div>
+                        <div class="p-4 bg-white/50 border-b border-slate-200/50 font-bold text-sm text-slate-700">Data Katalog Barang</div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse text-sm">
                                 <thead>
                                     <tr class="bg-slate-50/50 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200/50">
-                                        <th class="py-3 px-5">Nama Barang</th><th class="py-3 px-5 text-right">Harga Modal</th><th class="py-3 px-5 text-center">Aksi</th>
+                                        <th class="py-3 px-5">Nama Barang</th><th class="py-3 px-5 text-right">Harga Barang</th><th class="py-3 px-5 text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="masterKatalogTableBody" class="divide-y divide-slate-100"></tbody>
