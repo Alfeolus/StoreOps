@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoreOps Pro - AI & Finansial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="app.js"></script>
+</head>
+<body class="text-slate-800">
+
+    <div id="toastContainer" class="fixed top-20 right-6 z-50 flex flex-col gap-2"></div>
+
+    <div id="modalLaku" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0 duration-300" id="modalOverlay" onclick="tutupModalLaku()"></div>
+        <div class="glass-card p-6 rounded-3xl w-full max-w-sm mx-4 relative z-10 transform scale-95 opacity-0 transition-all duration-300 shadow-2xl" id="modalContent">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 text-white p-3 rounded-2xl shadow-lg">
+                    <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 leading-tight">Penjualan Barang</h3>
+                    <p class="text-xs font-semibold text-slate-500 mt-0.5" id="modalNamaBarang">Nama Barang</p>
+                </div>
+            </div>
+            
+            <input type="hidden" id="modalItemId">
+            <input type="hidden" id="modalStokMax">
+            <input type="hidden" id="modalHargaBeli">
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4 flex justify-between items-center text-sm">
+                <span class="text-slate-500 font-medium">Modal / Harga Beli:</span>
+                <span class="font-bold text-slate-700" id="modalHargaBeliLabel">Rp 0</span>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Harga Jual ke Pelanggan (Rp/Pcs)</label>
+                    <input type="number" id="inputHargaJual" required min="0" placeholder="Contoh: 5500" class="w-full border border-slate-200 bg-white shadow-inner rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-emerald-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Jumlah Terjual (Qty)</label>
+                    <div class="relative">
+                        <input type="number" id="inputQtyLaku" min="1" placeholder="0" class="w-full border border-slate-200 bg-white shadow-inner rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-emerald-500 transition-all">
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Max: <span id="modalMaxLabel">10</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="tutupModalLaku()" class="flex-1 bg-white border border-slate-200 text-slate-600 font-bold py-3 rounded-xl text-sm cursor-pointer hover:bg-slate-50">Batal</button>
+                <button onclick="konfirmasiLaku()" class="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold py-3 rounded-xl text-sm flex justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-200"><i data-lucide="check-circle" class="w-4 h-4"></i> Jual</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="glass-card sticky top-0 z-40 border-b border-white/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 text-white p-2 rounded-xl shadow-lg">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                </div>
+                <span class="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-700 to-violet-600 bg-clip-text text-transparent">StoreOps Pro</span>
+            </div>
+            
+            <div class="flex gap-1 sm:gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                <button id="navTokoBtn" onclick="bukaMenuUtama('toko')" class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition-all cursor-pointer flex items-center gap-1.5"><i data-lucide="layout-grid" class="w-4 h-4"></i> <span class="hidden sm:inline">Gudang</span></button>
+                <button id="navKeuanganBtn" onclick="bukaMenuUtama('keuangan')" class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all cursor-pointer flex items-center gap-1.5"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> <span class="hidden sm:inline">Keuangan</span></button>
+                <button id="navAnalisaBtn" onclick="bukaMenuUtama('analisa')" class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold rounded-lg text-slate-500 hover:text-violet-600 transition-all cursor-pointer flex items-center gap-1.5"><i data-lucide="sparkles" class="w-4 h-4"></i> <span class="hidden sm:inline">Analisa AI</span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div id="sectionGudang">
+            <div id="viewDasbor" class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div class="glass-card p-5 rounded-2xl">
+                    <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200/50 pb-3 mb-4 flex items-center gap-1.5"><i data-lucide="plus-circle" class="w-4 h-4 text-indigo-600"></i> Kelola Data Toko</h2>
+                    <form id="tokoForm" onsubmit="simpanToko(event)" class="space-y-4">
+                        <input type="hidden" id="editTokoId">
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Nama Toko</label>
+                            <input type="text" id="tokoNama" required class="w-full border-0 bg-slate-100/70 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Kategori</label>
+                            <input type="text" id="tokoKategori" required class="w-full border-0 bg-slate-100/70 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="pt-2 flex gap-2">
+                            <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl text-sm transition-all flex justify-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Simpan Toko</button>
+                            <button type="button" id="btnBatalToko" onclick="resetTokoForm()" class="hidden bg-slate-200 text-slate-700 py-2.5 px-4 rounded-xl text-sm">Batal</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="lg:col-span-2">
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold text-slate-800">Daftar Toko</h1>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="daftarToko"></div>
+                </div>
+            </div>
+
+            <div id="viewDetail" class="hidden">
+                <div class="flex items-center gap-4 mb-6">
+                    <button onclick="kembaliKeDasborToko()" class="bg-white border border-slate-200 p-2.5 rounded-xl hover:bg-slate-50 transition-colors shadow-sm text-slate-600 cursor-pointer"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                    <div><h1 id="namaTokoLabel" class="text-2xl font-bold text-slate-800">Nama Toko</h1><p class="text-slate-500 text-sm mt-1">Manajemen Stok Aset Gudang</p></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="glass-card p-5 rounded-2xl flex items-center justify-between border-l-4 border-l-emerald-500">
+                        <div><p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Nilai Investasi Aset Gudang</p><h3 id="statTotalAset" class="text-2xl font-bold mt-1 text-slate-800">Rp 0</h3></div>
+                        <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl"><i data-lucide="pie-chart"></i></div>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl flex items-center justify-between border-l-4 border-l-indigo-500">
+                        <div><p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Variasi Jenis Aset Gudang</p><h3 id="statTotalProduk" class="text-2xl font-bold mt-1 text-slate-800">0 Jenis</h3></div>
+                        <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl"><i data-lucide="box"></i></div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mb-6 bg-slate-200/50 p-1 rounded-xl max-w-xl border border-slate-200/30">
+                    <button id="tabStokBtn" onclick="switchTab('stok')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-xs cursor-pointer">📦 Stok Aset</button>
+                    <button id="tabRiwayatBtn" onclick="switchTab('riwayat')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer">📜 Riwayat Pengadaan</button>
+                    <button id="tabKatalogBtn" onclick="switchTab('katalog')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer">📁 Master Katalog</button>
+                </div>
+
+                <div id="kontenStok" class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    <div class="glass-card p-5 rounded-2xl">
+                        <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200/50 pb-3 mb-4 flex items-center gap-1.5"><i data-lucide="shopping-cart" class="w-4 h-4 text-indigo-600"></i> Beli Stok Baru</h2>
+                        <div id="katalogOrderContainer" class="space-y-3 max-h-[420px] overflow-y-auto pr-1"></div>
+                    </div>
+                    <div class="lg:col-span-2 glass-card rounded-2xl overflow-hidden">
+                        <div class="p-4 bg-white/50 border-b border-slate-200/50 font-bold text-sm text-slate-700">Aset Gudang Tersedia</div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-slate-50/50 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200/50">
+                                        <th class="py-3 px-5">Barang</th>
+                                        <th class="py-3 px-5 text-right">Hrg Beli</th>
+                                        <th class="py-3 px-5 text-center">Sisa Stok</th>
+                                        <th class="py-3 px-5 text-right">Nilai Aset</th>
+                                        <th class="py-3 px-5 text-center">Aksi Jual</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventarisTableBody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="kontenRiwayat" class="hidden glass-card rounded-2xl overflow-hidden">
+                    <div class="p-4 bg-white/50 border-b border-slate-200/50 font-bold text-sm text-slate-700">Log Pengadaan Masuk (Pengeluaran)</div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50/50 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200/50">
+                                    <th class="py-3 px-5">Tanggal</th>
+                                    <th class="py-3 px-5">Barang</th>
+                                    <th class="py-3 px-5 text-center">Jumlah</th>
+                                    <th class="py-3 px-5 text-right">Total Biaya Beli</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riwayatTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="kontenKatalog" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    <div class="glass-card p-5 rounded-2xl">
+                        <h2 id="katalogFormTitle" class="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200/50 pb-3 mb-4">Input Katalog</h2>
+                        <form id="katalogForm" onsubmit="simpanKatalog(event)" class="space-y-4">
+                            <input type="hidden" id="editKatalogId">
+                            <div><label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Nama Produk</label><input type="text" id="katNama" required class="w-full border-0 bg-slate-100/70 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500"></div>
+                            <div><label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Kategori</label><input type="text" id="katKategori" required class="w-full border-0 bg-slate-100/70 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500"></div>
+                            <div><label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Harga Beli Modal (Rp)</label><input type="number" id="katHarga" required min="0" class="w-full border-0 bg-slate-100/70 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500"></div>
+                            <div class="flex gap-2">
+                                <button type="submit" class="flex-1 bg-indigo-600 text-white font-medium py-2 rounded-xl text-sm cursor-pointer">Simpan</button>
+                                <button type="button" id="btnBatalKatalog" onclick="resetKatalogForm()" class="hidden bg-slate-200 py-2 px-3 rounded-xl text-sm">Batal</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="lg:col-span-2 glass-card rounded-2xl overflow-hidden">
+                        <div class="p-4 bg-white/50 border-b border-slate-200/50 font-bold text-sm text-slate-700">Master Data Katalog Toko</div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-slate-50/50 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200/50">
+                                        <th class="py-3 px-5">Nama Barang</th><th class="py-3 px-5 text-right">Harga Modal</th><th class="py-3 px-5 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="masterKatalogTableBody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="sectionKeuangan" class="hidden">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-slate-800">Buku Besar Keuangan</h1>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass-card p-6 rounded-2xl flex justify-between border-b-4 border-b-rose-500">
+                    <div><p class="text-xs font-bold uppercase text-slate-400">Total Pengeluaran</p><h3 id="statPengeluaran" class="text-2xl font-bold mt-1 text-slate-800">Rp 0</h3></div>
+                    <div class="bg-rose-50 text-rose-500 p-3 rounded-xl"><i data-lucide="arrow-down-right" class="w-6 h-6"></i></div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl flex justify-between border-b-4 border-b-emerald-500">
+                    <div><p class="text-xs font-bold uppercase text-slate-400">Total Pemasukan</p><h3 id="statPemasukan" class="text-2xl font-bold mt-1 text-slate-800">Rp 0</h3></div>
+                    <div class="bg-emerald-50 text-emerald-500 p-3 rounded-xl"><i data-lucide="arrow-up-right" class="w-6 h-6"></i></div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl flex justify-between border-b-4 border-b-indigo-500 bg-indigo-50/30">
+                    <div><p class="text-xs font-bold uppercase text-indigo-500">Laba Bersih (Profit)</p><h3 id="statProfit" class="text-3xl font-extrabold mt-1 text-indigo-700">Rp 0</h3></div>
+                    <div class="bg-indigo-600 text-white p-3 rounded-xl"><i data-lucide="wallet" class="w-6 h-6"></i></div>
+                </div>
+            </div>
+            <div class="glass-card rounded-2xl overflow-hidden">
+                <div class="p-5 bg-white/50 border-b border-slate-200/50 flex justify-between items-center">
+                    <h2 class="font-bold text-sm text-slate-700">Riwayat Semua Transaksi</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200/50">
+                                <th class="py-4 px-5">Waktu</th><th class="py-4 px-5">Tipe & Barang</th><th class="py-4 px-5 text-center">Qty</th><th class="py-4 px-5 text-right">Total</th><th class="py-4 px-5 text-right">Profit/Laba</th>
+                            </tr>
+                        </thead>
+                        <tbody id="keuanganTableBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             SECTION C: ANALISA BISNIS GEMINI AI & CHATBOT
+             ========================================================= -->
+        <div id="sectionAnalisa" class="hidden">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-8 h-8 text-violet-600"></i> Analisa Bisnis AI
+                </h1>
+                <p class="text-slate-500 text-sm mt-1">Asisten cerdas untuk menganalisa kesehatan keuangan dan menjawab pertanyaan bisnis Anda secara real-time.</p>
+            </div>
+
+            <div id="panelSetupGemini" class="glass-card p-6 rounded-3xl mb-8 border border-rose-200 bg-rose-50/30">
+                <div class="flex items-center gap-3 mb-3">
+                    <i data-lucide="key" class="w-5 h-5 text-rose-500"></i>
+                    <h2 class="text-sm font-bold text-slate-800">Koneksi ke Google Gemini Belum Diatur</h2>
+                </div>
+                <p class="text-xs text-slate-600 mb-4">Untuk keamanan, sistem tidak menyimpan API Key di dalam kode (GitHub). Silakan masukkan API Key Gemini Anda di sini. Kunci hanya akan disimpan di dalam browser perangkat Anda ini saja.</p>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="password" id="inputKunciGemini" placeholder="Masukkan API Key (AIzaSy...)" class="flex-1 border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-violet-500">
+                    <button onclick="simpanKunciLokal()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition-all cursor-pointer">
+                        Simpan ke Browser
+                    </button>
+                </div>
+            </div>
+
+            <div id="kontenUtamaAI" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                
+                <div class="glass-card p-6 rounded-3xl border border-violet-100 flex flex-col gap-5">
+                    <div class="flex items-center justify-between border-b border-slate-200/50 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-violet-100 text-violet-600 p-2.5 rounded-xl"><i data-lucide="file-text"></i></div>
+                            <div>
+                                <h2 class="text-base font-bold text-slate-800">Laporan Evaluasi Bisnis</h2>
+                                <p class="text-xs text-slate-500 mt-0.5">Ringkasan otomatis dari transaksi terakhir</p>
+                            </div>
+                        </div>
+                        <button onclick="hapusKunciLokal()" class="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded hover:bg-rose-100 hover:text-rose-600 transition-colors cursor-pointer font-bold">Ganti Kunci</button>
+                    </div>
+                    
+                    <button onclick="mintaAnalisaGemini()" id="btnGenerateAI" class="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold py-3.5 px-6 rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-violet-200 cursor-pointer w-full">
+                        <i data-lucide="brain-circuit" class="w-5 h-5"></i> Generate Analisa Sekarang
+                    </button>
+                    
+                    <div id="loadingAI" class="hidden py-8 text-center text-violet-500 flex flex-col items-center gap-3">
+                        <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+                        <p class="text-xs font-semibold animate-pulse">Gemini sedang membaca data Anda...</p>
+                    </div>
+                    
+                    <div id="hasilAIBox" class="hidden mt-2 p-5 bg-white/60 rounded-2xl border border-slate-100 shadow-sm max-h-[300px] overflow-y-auto">
+                        <div id="teksHasilAI" class="prose prose-sm text-slate-700 max-w-none leading-relaxed"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-0 rounded-3xl border border-violet-100 flex flex-col h-[520px] overflow-hidden shadow-sm">
+                    <div class="p-4 border-b border-slate-200/50 bg-white/60 flex items-center gap-3">
+                        <div class="bg-indigo-100 text-indigo-600 p-2 rounded-lg"><i data-lucide="message-square" class="w-5 h-5"></i></div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">Tanya Asisten</h2>
+                            <p class="text-[10px] text-emerald-600 uppercase tracking-wider font-bold">● Terkoneksi & Siap</p>
+                        </div>
+                    </div>
+                    
+                    <div id="chatHistory" class="flex-1 overflow-y-auto p-5 space-y-5 bg-slate-50/50 scroll-smooth">
+                        <div class="flex gap-3">
+                            <div class="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0 text-violet-600"><i data-lucide="bot" class="w-4 h-4"></i></div>
+                            <div class="bg-white p-3.5 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-sm text-slate-700">
+                                Halo! Saya AI StoreOps. Ada yang ingin ditanyakan seputar pengeluaran, keuntungan, atau stok toko Anda hari ini?
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-white/80 border-t border-slate-200/50">
+                        <form onsubmit="kirimPesanChat(event)" class="flex gap-2">
+                            <input type="text" id="chatInput" placeholder="Ketik pertanyaan di sini..." class="flex-1 border-0 bg-slate-100/70 shadow-inner rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-violet-500 outline-none">
+                            <button type="submit" id="btnKirimChat" class="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center">
+                                <i data-lucide="send" class="w-5 h-5"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>
